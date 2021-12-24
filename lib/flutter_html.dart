@@ -3,33 +3,33 @@ library flutter_html;
 import 'package:chewie/chewie.dart';
 import 'package:chewie_audio/chewie_audio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_html/custom_render.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_html/custom_render.dart';
 import 'package:flutter_html/html_parser.dart';
 import 'package:flutter_html/image_render.dart';
 import 'package:flutter_html/src/html_elements.dart';
+import 'package:flutter_html/src/navigation_delegate.dart';
 import 'package:flutter_html/src/utils.dart';
 import 'package:flutter_html/style.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:flutter_html/src/navigation_delegate.dart';
 import 'package:video_player/video_player.dart';
 
+export 'package:flutter_html/custom_render.dart';
 //export render context api
 export 'package:flutter_html/html_parser.dart';
 //export render context api
 export 'package:flutter_html/html_parser.dart';
 //export image render api
 export 'package:flutter_html/image_render.dart';
-export 'package:flutter_html/custom_render.dart';
 //export image render api
 export 'package:flutter_html/image_render.dart';
 //export src for advanced custom render uses (e.g. casting context.tree)
 export 'package:flutter_html/src/anchor.dart';
 export 'package:flutter_html/src/interactable_element.dart';
 export 'package:flutter_html/src/layout_element.dart';
+export 'package:flutter_html/src/navigation_delegate.dart';
 export 'package:flutter_html/src/replaced_element.dart';
 export 'package:flutter_html/src/styled_element.dart';
-export 'package:flutter_html/src/navigation_delegate.dart';
 //export style api
 export 'package:flutter_html/style.dart';
 
@@ -68,6 +68,7 @@ class Html extends StatefulWidget {
     this.customRenders = const {},
     this.customImageRenders = const {},
     this.onCssParseError,
+    this.disableInlineStyle = false,
     this.onImageError,
     this.onMathError,
     this.shrinkWrap = false,
@@ -86,6 +87,7 @@ class Html extends StatefulWidget {
     @required this.document,
     this.onLinkTap,
     this.onAnchorTap,
+    this.disableInlineStyle = false,
     this.customRenders = const {},
     this.customImageRenders = const {},
     this.onCssParseError,
@@ -148,17 +150,21 @@ class Html extends StatefulWidget {
   /// An API that allows you to override the default style for any HTML element
   final Map<String, Style> style;
 
+  /// A parameter that should be set when you want to forbid use inline styles
+  final bool disableInlineStyle;
+
   /// Decides how to handle a specific navigation request in the WebView of an
   /// Iframe. It's necessary to use the webview_flutter package inside the app
   /// to use NavigationDelegate.
   final NavigationDelegate? navigationDelegateForIframe;
 
   /// Get the list of supported tags for the [Html] widget
-  static List<String> get tags =>
-      new List<String>.from(STYLED_ELEMENTS)
-        ..addAll(INTERACTABLE_ELEMENTS)..addAll(REPLACED_ELEMENTS)..addAll(
-          LAYOUT_ELEMENTS)..addAll(TABLE_CELL_ELEMENTS)..addAll(
-          TABLE_DEFINITION_ELEMENTS);
+  static List<String> get tags => new List<String>.from(STYLED_ELEMENTS)
+    ..addAll(INTERACTABLE_ELEMENTS)
+    ..addAll(REPLACED_ELEMENTS)
+    ..addAll(LAYOUT_ELEMENTS)
+    ..addAll(TABLE_CELL_ELEMENTS)
+    ..addAll(TABLE_DEFINITION_ELEMENTS);
 
   /// Protected member to track controllers used in all [Html] widgets. Please
   /// refrain from using this member, and rather use the [chewieAudioControllers],
@@ -173,13 +179,20 @@ class Html extends StatefulWidget {
   final InternalControllers _controllers = InternalControllers();
 
   /// Getter for all [ChewieAudioController]s initialized by [Html] widgets.
-  static List<ChewieAudioController> get chewieAudioControllers => controllers.chewieAudioControllers.values.toList();
+  static List<ChewieAudioController> get chewieAudioControllers =>
+      controllers.chewieAudioControllers.values.toList();
+
   /// Getter for all [ChewieController]s initialized by [Html] widgets.
-  static List<ChewieController> get chewieControllers => controllers.chewieControllers.values.toList();
+  static List<ChewieController> get chewieControllers =>
+      controllers.chewieControllers.values.toList();
+
   /// Getter for all [VideoPlayerController]s for video widgets initialized by [Html] widgets.
-  static List<VideoPlayerController> get videoPlayerControllers => controllers.videoPlayerControllers.values.toList();
+  static List<VideoPlayerController> get videoPlayerControllers =>
+      controllers.videoPlayerControllers.values.toList();
+
   /// Getter for all [VideoPlayerController]s for audio widgets initialized by [Html] widgets.
-  static List<VideoPlayerController> get audioPlayerControllers => controllers.audioPlayerControllers.values.toList();
+  static List<VideoPlayerController> get audioPlayerControllers =>
+      controllers.audioPlayerControllers.values.toList();
 
   /// Convenience method to dispose all controllers used by all [Html] widgets
   /// at this time. This is not necessary to be called, as each [Html] widget
@@ -201,7 +214,8 @@ class Html extends StatefulWidget {
 
   /// Internal method to add controllers to the global list and widget-specific
   /// list. This should not be used in your app code.
-  void addController(int hashCode, dynamic controller, {bool isAudioController = false}) {
+  void addController(int hashCode, dynamic controller,
+      {bool isAudioController = false}) {
     if (controller is ChewieAudioController) {
       controllers.chewieAudioControllers[hashCode] = controller;
       _controllers.chewieAudioControllers[hashCode] = controller;
@@ -227,8 +241,9 @@ class _HtmlState extends State<Html> {
   @override
   void initState() {
     super.initState();
-    doc =
-      widget.data != null ? HtmlParser.parseHTML(widget.data!) : widget.document!;
+    doc = widget.data != null
+        ? HtmlParser.parseHTML(widget.data!)
+        : widget.document!;
   }
 
   @override
@@ -236,7 +251,8 @@ class _HtmlState extends State<Html> {
     widget._controllers.chewieAudioControllers.values.forEach((element) {
       element.dispose();
     });
-    widget._controllers.chewieControllers.values.forEach((ChewieController element) {
+    widget._controllers.chewieControllers.values
+        .forEach((ChewieController element) {
       element.dispose();
     });
     widget._controllers.videoPlayerControllers.values.forEach((element) {
@@ -255,6 +271,7 @@ class _HtmlState extends State<Html> {
       child: HtmlParser(
         key: widget._anchorKey,
         htmlData: doc,
+        disableInlineStyle: widget.disableInlineStyle,
         onLinkTap: widget.onLinkTap,
         onAnchorTap: widget.onAnchorTap,
         onImageTap: widget.onImageTap,
@@ -323,7 +340,7 @@ class SelectableHtml extends StatelessWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : document = null,
+  })  : document = null,
         assert(data != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -341,7 +358,7 @@ class SelectableHtml extends StatelessWidget {
     this.tagsList = const [],
     this.selectionControls,
     this.scrollPhysics,
-  }) : data = null,
+  })  : data = null,
         assert(document != null),
         _anchorKey = anchorKey ?? GlobalKey(),
         super(key: key);
@@ -391,7 +408,8 @@ class SelectableHtml extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dom.Document doc = data != null ? HtmlParser.parseHTML(data!) : document!;
+    final dom.Document doc =
+        data != null ? HtmlParser.parseHTML(data!) : document!;
     final double? width = shrinkWrap ? null : MediaQuery.of(context).size.width;
 
     return Container(
@@ -399,6 +417,7 @@ class SelectableHtml extends StatelessWidget {
       child: HtmlParser(
         key: _anchorKey,
         htmlData: doc,
+        disableInlineStyle: false,
         onLinkTap: onLinkTap,
         onAnchorTap: onAnchorTap,
         onImageTap: null,
