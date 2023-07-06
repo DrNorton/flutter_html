@@ -25,13 +25,13 @@ dependencies:
   webview_flutter: '>=2.0.4 <4.0.0'
 
   # Plugins for rendering the <audio> tag.
-  chewie_audio: '>=1.2.0 <2.0.0'
+  chewie_audio: ^1.5.0
 
   # Plugins for rendering the <svg> tag.
-  flutter_svg: '>=1.0.0 <2.0.0'
+  flutter_svg: '>=1.0.0 <2.1.0'
 
   # Plugin for rendering MathML
-  flutter_math_fork: '>=0.4.2+1 <1.0.0'
+  flutter_math_fork: ^0.7.1
 
   # plugin for firstWhereOrNull extension on lists
   collection: '>=1.15.0 <2.0.0'
