@@ -34,25 +34,30 @@ class IframeContentElement extends ReplacedElement {
       child: ContainerSpan(
         style: context.style,
         newContext: context,
-        child: webview.WebView(
-          initialUrl: src,
+        child: webview.WebViewWidget(
+          controller: webview.WebViewController()
+            ..setNavigationDelegate(webview.NavigationDelegate(
+              onNavigationRequest: (request) async {
+                final result = await navigationDelegate!(NavigationRequest(
+                  url: request.url,
+                  isForMainFrame: request.isMainFrame,
+                ));
+                if (result == NavigationDecision.prevent) {
+                  return webview.NavigationDecision.prevent;
+                } else {
+                  return webview.NavigationDecision.navigate;
+                }
+              },
+            ))
+            ..setJavaScriptMode(
+                sandboxMode == null || sandboxMode == "allow-scripts"
+                    ? webview.JavaScriptMode.unrestricted
+                    : webview.JavaScriptMode.disabled)
+            ..loadRequest(Uri.parse(src ?? '')),
           key: key,
-          javascriptMode: sandboxMode == null || sandboxMode == "allow-scripts"
-            ? webview.JavascriptMode.unrestricted
-            : webview.JavascriptMode.disabled,
-        navigationDelegate: (request) async {
-          final result = await navigationDelegate!(NavigationRequest(
-            url: request.url,
-            isForMainFrame: request.isForMainFrame,
-          ));
-          if (result == NavigationDecision.prevent) {
-            return webview.NavigationDecision.prevent;
-          } else {
-            return webview.NavigationDecision.navigate;
-          }
-        },
           gestureRecognizers: {
-            Factory<VerticalDragGestureRecognizer>(() => VerticalDragGestureRecognizer())
+            Factory<VerticalDragGestureRecognizer>(
+                () => VerticalDragGestureRecognizer())
           },
         ),
       ),
