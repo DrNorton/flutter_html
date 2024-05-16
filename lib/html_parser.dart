@@ -170,7 +170,7 @@ class HtmlParser extends StatelessWidget {
       name: "[Tree Root]",
       children: <StyledElement>[],
       node: html.documentElement,
-      style: Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
+      style: Style.fromTextStyle(Theme.of(context).textTheme.bodyMedium!),
     );
 
     html.nodes.forEach((node) {
@@ -239,7 +239,7 @@ class HtmlParser extends StatelessWidget {
               parser: parser,
               tree: tree,
               style:
-                  Style.fromTextStyle(Theme.of(context).textTheme.bodyText2!),
+                  Style.fromTextStyle(Theme.of(context).textTheme.bodyMedium!),
             ),
           )) {
             return tree;
